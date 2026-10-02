@@ -39,6 +39,27 @@ All values must be strings.
 """
 
 
+text_analysis_format = {
+    "type": "json_schema",
+    "name": "text_analysis",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "title": {"type": "string"},
+            "main_topic": {"type": "string"},
+            "summary": {"type": "string"},
+            "sentiment": {
+                "type": "string",
+                "enum": ["positive", "neutral", "negative"],
+            },
+        },
+        "required": ["title", "main_topic", "summary", "sentiment"],
+        "additionalProperties": False,
+    },
+}
+
+
 def handle_ai_error(error: Exception) -> dict:
     if isinstance(error, RateLimitError):
         error_type = "rate_limit"
@@ -96,13 +117,14 @@ def analyze_text(record):
     """
 
     try:
-        response = open_ai.chat.completions.create(
+        response = open_ai.responses.create(
             model = "gpt-4o-mini",
-            messages = [{'role':'system','content':system_prompt },{'role':'user','content': user_prompt }],
-            response_format={"type": "json_object"},
+            instructions = system_prompt,
+            input = user_prompt
+            text.format = text_analysis_format,
         )
 
-        result = json.loads(response.choices[0].message.content)
+        result = json.loads(response.output_text)
         valid_results = json_validation(result)
         return valid_results
     except json.JSONDecodeError as e:
