@@ -1,6 +1,6 @@
 from text_validation import text_validation
 from calling_model import analyze_text
-
+from summary_length_validation import summary_length_validation
 
 
 text = """
@@ -19,11 +19,8 @@ The war exacted an enormous cost: estimates of Vietnamese soldiers and civilians
 Political repression and flawed economic policies following the war would precipitate the Vietnamese boat people and the larger Indochina refugee crisis,[52] which saw millions leave Indochina, of which about 250,000 perished at sea.[53] The Khmer Rouge carried out the Cambodian genocide, and the Cambodian–Vietnamese War began in 1978. In response, China invaded Vietnam, with border conflicts lasting until 1991. Within the US, the war gave rise to Vietnam syndrome, an aversion to American overseas military involvement,[54] which, with the Watergate scandal, contributed to the crisis of confidence that affected the United States throughout the 1970s.[55]
 """
 
-length = 'short'
+length = 'long'
 
 
 txt_val = text_validation(text,length)
 summurizer = analyze_text(txt_val)
-
-
-print(summurizer)
