@@ -120,8 +120,8 @@ def analyze_text(record):
         response = open_ai.responses.create(
             model = "gpt-4o-mini",
             instructions = system_prompt,
-            input = user_prompt
-            text.format = text_analysis_format,
+            input = user_prompt,
+            text = { format: text_analysis_format },
         )
 
         result = json.loads(response.output_text)
