@@ -121,7 +121,7 @@ def analyze_text(record):
             model = "gpt-4o-mini",
             instructions = system_prompt,
             input = user_prompt,
-            text = { format: text_analysis_format },
+            text = { 'format': text_analysis_format },
         )
 
         result = json.loads(response.output_text)
