@@ -89,17 +89,21 @@ def handle_validation_errors(error: Exception) -> dict:
     print(f"Error: {result}")
     return result
 
-def analyze_text(record: dict) -> dict:
+def analyze_text(record: dict, correction_feedback: str = None) -> dict:
     text = record.get('text')
     length_key = record.get('length')
-    rule = LENGTH_RULES.get(length_key, "exactly 3 to 5 sentences")
+    rule_desc = LENGTH_RULES.get(length_key, "exactly 3 to 5 sentences")
 
-    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(length_rule=rule)
-    user_prompt = f"""Target summary length: {rule}. Provide each sentence as an item in the `summary` array.
+    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(length_rule=rule_desc)
+
+    user_prompt = f"""Target summary length: {rule_desc}. Provide each sentence as an individual string element in the `summary` array.
 
 TEXT START:
 {text}
 TEXT END"""
+
+    if correction_feedback:
+        user_prompt += f"\n\nCRITICAL CORRECTION REQUIRED:\n{correction_feedback}"
 
     try:
         response = open_ai.responses.create(
@@ -109,12 +113,8 @@ TEXT END"""
             text={'format': text_analysis_format},
         )
 
-        raw_result = json.loads(response.output_text)
-        validated = json_validation(raw_result)
-        
-
-        validated["summary"] = " ".join(validated["summary"])
-        return validated
+        result = json.loads(response.output_text)
+        return json_validation(result)  # Leaves summary as a list of strings
     except json.JSONDecodeError as e:
         return handle_ai_error(e)
     except (TypeError, KeyError, ValueError) as e:
