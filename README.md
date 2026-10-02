@@ -146,15 +146,6 @@ Checks that the model output contains exactly the expected fields and valid valu
 
 Counts summary sentences and verifies that the result matches the selected summary length.
 
-## Security
-
-Do not commit your OpenAI API key.
-
-Keep secrets inside `.env`:
-
-```env
-OPENAI_API_KEY=your_key_here
-```
 
 The project's `.gitignore` excludes environment files from Git.
 
