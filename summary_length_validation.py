@@ -1,24 +1,32 @@
 import re
 
-def summary_length_validation(text: str) -> list[str]:
+def summary_length_validation(text: str, length: str) -> str:
+    summary_map = {
+        'short': (1, 2),
+        'medium': (3, 5),
+        'long': (6, 10),
+    }
+
+    if length not in summary_map:
+        raise ValueError(f"Invalid length option '{length}'. Choose from {list(summary_map.keys())}.")
 
     ABBREVIATION_MAP = {
-    r"\bU\.S\.": "__US__",
-    r"\bU\.K\.": "__UK__",
-    r"\bDr\.": "__DR__",
-    r"\bMr\.": "__MR__",
-    r"\bMrs\.": "__MRS__",
-    r"\bProf\.": "__PROF__",
-    r"\be\.g\.": "__EG__",
-    r"\bi\.e\.": "__IE__",
-    r"\betc\.": "__ETC__",
-}
+        r"\bU\.S\.": "__US__",
+        r"\bU\.K\.": "__UK__",
+        r"\bDr\.": "__DR__",
+        r"\bMr\.": "__MR__",
+        r"\bMrs\.": "__MRS__",
+        r"\bProf\.": "__PROF__",
+        r"\be\.g\.": "__EG__",
+        r"\bi\.e\.": "__IE__",
+        r"\betc\.": "__ETC__",
+    }
 
     RESTORE_MAP = {v: k.replace(r"\b", "").replace(r"\\.", ".") for k, v in ABBREVIATION_MAP.items()}
+    
     masked_text = text
     for pattern, placeholder in ABBREVIATION_MAP.items():
         masked_text = re.sub(pattern, placeholder, masked_text)
-
 
     sentence_pattern = r'(?<=[.!?])\s+(?=[A-Z0-9])'
     raw_segments = re.split(sentence_pattern, masked_text.strip())
@@ -32,4 +40,14 @@ def summary_length_validation(text: str) -> list[str]:
             clean = clean.replace(placeholder, original)
         restored_sentences.append(clean)
 
-    return restored_sentences
+    sentence_length = len(restored_sentences)
+
+
+    min_sentences, max_sentences = summary_map[length]
+
+    if min_sentences <= sentence_length <= max_sentences:
+        return text
+
+    raise ValueError(
+        f"Expected {min_sentences}-{max_sentences} sentences for '{length}', received: {sentence_length}"
+    )

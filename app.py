@@ -24,3 +24,6 @@ length = 'long'
 
 txt_val = text_validation(text,length)
 summurizer = analyze_text(txt_val)
+
+val = summary_length_validation(summurizer['summary'],length)
+print(val)
