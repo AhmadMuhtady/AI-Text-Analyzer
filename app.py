@@ -2,6 +2,12 @@ from text_validation import text_validation
 from calling_model import analyze_text
 from summary_length_validation import summary_length_validation
 
+SUMMARY_BOUNDS = {
+    'short': (1, 2),
+    'medium': (3, 5),
+    'long': (6, 10),
+}
+
 
 text = """
 The Vietnam War (c. 1955[A 1] – 30 April 1975) was an armed conflict in Vietnam, Laos, and Cambodia fought between North Vietnam (Democratic Republic of Vietnam) and South Vietnam (Republic of Vietnam) and their allies. North Vietnam was supported by the Soviet Union and China, while South Vietnam was supported by the United States and other anti-communist nations. The conflict was the second of the Indochina wars and a proxy war of the Cold War. The Vietnam War was one of the postcolonial wars of national liberation, a theater in the Cold War, and a civil war, with civil warfare a defining feature from the outset.[43] Direct US military involvement escalated from 1965 until US forces were withdrawn in 1973. The fighting spilled into the Laotian and Cambodian civil wars, which ended with all three countries becoming communist in 1975.
@@ -22,20 +28,41 @@ Political repression and flawed economic policies following the war would precip
 length = 'long'
 
 
-def pipeline(text,length):
-    try:
-        text_val = text_validation(text,length)
-        summarizer = analyze_text(text_val)
-        summary_val = summary_length_validation(summarizer['summary'],length)
+def pipeline(text: str, length: str, max_retries: int = 1):
+    text_val = text_validation(text, length)
+    min_s, max_s = SUMMARY_BOUNDS[text_val['length']]
 
-        return summarizer
-    except Exception as e:
-        return e
+    correction_message = None
 
+    for attempt in range(max_retries + 1):
+        summarizer = analyze_text(text_val, correction_feedback=correction_message)
 
-
-
-app = pipeline(text,length)
+        if "error" in summarizer:
+            return summarizer
 
 
+        sentence_count = len(summarizer['summary'])
+
+        if min_s <= sentence_count <= max_s:
+
+            summarizer['summary'] = " ".join(summarizer['summary'])
+            
+
+            summary_length_validation(summarizer['summary'], text_val['length'])
+            return summarizer
+
+
+        correction_message = (
+            f"Your previous output was rejected because you gave {sentence_count} sentences, "
+            f"need {min_s}–{max_s}. Ensure the `summary` array contains between "
+            f"{min_s} and {max_s} discrete sentences."
+        )
+
+    raise ValueError(
+        f"Failed after {max_retries} retry: Expected {min_s}–{max_s} sentences for '{length}', "
+        f"received {sentence_count} sentences."
+    )
+
+
+app = pipeline(text, length)
 print(app)
