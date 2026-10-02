@@ -84,7 +84,9 @@ def handle_validation_errors(error: Exception) -> dict:
     print(f"Error: {result}")
     return result
 
-def analyze_text(text,length):
+def analyze_text(record):
+    text = record.get('text')
+    length = record.get('length')
     user_prompt = f"""
     Analyze the text below.
     Target summary length: {length}
