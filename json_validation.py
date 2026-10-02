@@ -5,7 +5,6 @@ def json_validation(result: dict) -> dict:
         raise TypeError(f"Result must be a dict, got {type(result).__name__}")
 
     actual_keys = set(result.keys())
-
     if actual_keys != target_keys:
         missing = target_keys - actual_keys
         extra = actual_keys - target_keys
@@ -16,18 +15,27 @@ def json_validation(result: dict) -> dict:
             errors.append(f"unexpected key(s): {', '.join(sorted(extra))}")
         raise KeyError(f"Invalid keys in result ({'; '.join(errors)})")
 
-
     cleaned = {}
     for key, value in result.items():
-        if not isinstance(value, str):
-            raise TypeError(f"Value for '{key}' must be a string, got {type(value).__name__}")
-        
-        stripped_val = value.strip()
-        if not stripped_val:
-            raise ValueError(f"Value for '{key}' cannot be empty or whitespace-only")
-        
-        cleaned[key] = stripped_val
-
+        if key == "summary":
+            if not isinstance(value, list):
+                raise TypeError(f"Value for 'summary' must be a list, got {type(value).__name__}")
+            cleaned_sentences = []
+            for idx, item in enumerate(value):
+                if not isinstance(item, str):
+                    raise TypeError(f"Summary item {idx} must be a string, got {type(item).__name__}")
+                s = item.strip()
+                if not s:
+                    raise ValueError(f"Summary item {idx} cannot be empty or whitespace-only")
+                cleaned_sentences.append(s)
+            cleaned["summary"] = cleaned_sentences
+        else:
+            if not isinstance(value, str):
+                raise TypeError(f"Value for '{key}' must be a string, got {type(value).__name__}")
+            stripped = value.strip()
+            if not stripped:
+                raise ValueError(f"Value for '{key}' cannot be empty or whitespace-only")
+            cleaned[key] = stripped
 
     allowed_sentiments = {"positive", "negative", "neutral"}
     sentiment_lower = cleaned["sentiment"].lower()
